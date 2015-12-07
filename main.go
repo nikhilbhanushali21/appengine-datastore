@@ -13,15 +13,15 @@ func init() {
 	http.HandleFunc("/", handleImages)
 }
 
-type Image struct {
-	Subject string
-	URL string
+type Song struct {
+	songName string
+	URL      string
 }
 
 func handleImages(res http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/" {
-		subject := strings.Split(req.URL.Path, "/")[1]
-		showImage(res, req, subject)
+		SongName := strings.Split(req.URL.Path, "/")[1]
+		showSong(res, req, SongName)
 		return
 	}
 
@@ -30,18 +30,18 @@ func handleImages(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	listImages(res, req)
+	listSongs(res, req)
 }
 
-func listImages(res http.ResponseWriter, req *http.Request) {
+func listSongs(res http.ResponseWriter, req *http.Request) {
 	ctx := appengine.NewContext(req)
-	q := datastore.NewQuery("Image").Order("Subject")
+	q := datastore.NewQuery("Song").Order("songName")
 
-	html := "<h2>Database</h2>"
+	html := "<h2>Welcome to your Database</h2>"
 
 	iterator := q.Run(ctx)
 	for {
-		var entity Image
+		var entity Song
 		_, err := iterator.Next(&entity)
 		if err == datastore.Done {
 			break
@@ -50,7 +50,7 @@ func listImages(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 		html += `
-			<h3>` + entity.Subject + `</h3>
+			<h3>` + entity.songName + `</h3>
 			<br/>
 			<img src='` + entity.URL + `' />
 			<br/>
@@ -63,18 +63,18 @@ func listImages(res http.ResponseWriter, req *http.Request) {
 		<html>
 			<body>
 
-				<h1>Image/Subject Database for Computer Recognition Training</h1>
+				<h1>Create Your Youtube Playlist</h1>
 
-				<h2>Submit New</h2>
+				<h2>Playlist</h2>
 
 				<form method="POST">
 					<table>
 						<tr>
-							<td><label for="subject">Subject</label></td>
-							<td><input type="text" name="subject"></td>
+							<td><label for="Songname">Songname</label></td>
+							<td><input type="text" name="Songname"></td>
 						</tr>
 						<tr>
-							<td><label for="url">Image URL</label></td>
+							<td><label for="url">Song URL</label></td>
 							<td><input type="text" name="url"></td>
 						</tr>
 						<tr>
@@ -92,10 +92,10 @@ func listImages(res http.ResponseWriter, req *http.Request) {
 	`)
 }
 
-func showImage(res http.ResponseWriter, req *http.Request, subject string) {
+func showSong(res http.ResponseWriter, req *http.Request, Songname string) {
 	ctx := appengine.NewContext(req)
-	key := datastore.NewKey(ctx, "Image", subject, 0, nil)
-	var entity Image
+	key := datastore.NewKey(ctx, "url", Songname, 0, nil)
+	var entity Song
 	err := datastore.Get(ctx, key, &entity)
 	if err == datastore.ErrNoSuchEntity {
 		http.NotFound(res, req)
@@ -106,7 +106,7 @@ func showImage(res http.ResponseWriter, req *http.Request, subject string) {
 	}
 	res.Header().Set("Content-Type", "text/html")
 	fmt.Fprintln(res, `
-		<h2>` + entity.Subject + `</h2>
+		<h2>` + entity.songName + `</h2>
 		<br/>
 		<img src='` + entity.URL + `' />
 		<br/>
@@ -114,12 +114,12 @@ func showImage(res http.ResponseWriter, req *http.Request, subject string) {
 }
 
 func saveImage(res http.ResponseWriter, req *http.Request) {
-	subject := req.FormValue("subject")
+	songname := req.FormValue("Songname")
 	url := req.FormValue("url")
 	ctx := appengine.NewContext(req)
-	key := datastore.NewKey(ctx, "Image", subject, 0, nil)
-	entity := Image{
-		Subject: subject,
+	key := datastore.NewKey(ctx, "Song", songname, 0, nil)
+	entity := Song{
+		songName: songname,
 		URL: url,
 	}
 
